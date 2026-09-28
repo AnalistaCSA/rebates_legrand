@@ -208,8 +208,8 @@ def calcular_rebates(trimestre, categoria, meta, compras_usadas):
                 encabezados_facturado.index('Categoria')
             ]
 
-            trimestre_compra_facturado = fila_facturado[
-                encabezados_facturado.index('Trimestre Compra')
+            trimestre_facturado_asociado = fila_facturado[
+                encabezados_facturado.index('Trimestre')
             ]
 
             subtotal_facturado = (
@@ -245,7 +245,7 @@ def calcular_rebates(trimestre, categoria, meta, compras_usadas):
             if (
                 oc_facturada == oc_compra
                 and cumple_categoria_facturada
-                and trimestre_compra_facturado == trimestre
+                and trimestre_facturado_asociado == trimestre
             ):
 
                 facturado_de_esta_compra += float(
@@ -345,14 +345,33 @@ def calcular_rebates(trimestre, categoria, meta, compras_usadas):
     # =========================================================
 
     total = total_facturado + total_compras
+    cumplimiento = (total / meta) * 100 if meta > 0 else 0
 
-    # =========================================================
-    # 13. DEVOLVER RESULTADOS
-    # =========================================================
+    # Porcentajes de rebate por categoría, aplicados sobre el total combinado.
+    if categoria == 'DC & DC':
+        porcentaje_base = 5.0
+        porcentaje_130 = 6.5
+        porcentaje_150 = 7.5
+    else:
+        porcentaje_base = 4.0
+        porcentaje_130 = 5.2
+        porcentaje_150 = 6.0
 
+    if cumplimiento < 100:
+        porcentaje_rebate = 0
+    elif cumplimiento < 110:
+        porcentaje_rebate = porcentaje_base
+    elif cumplimiento < 120:
+        porcentaje_rebate = porcentaje_130
+    else:
+        porcentaje_rebate = porcentaje_150
+
+    rebate_esperado = total * (porcentaje_rebate / 100)
+
+    # El tercer elemento es el valor monetario del rebate mostrado en app.py.
     return (
         total_facturado,
         total_compras,
-        total,
+        rebate_esperado,
         nuevas_compras_usadas
     )
